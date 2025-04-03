@@ -1,0 +1,27 @@
+[project]
+name = "fastapi_rbac"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "victorgabrieldeon", email = "victordeonroyale@gmail.com"},
+]
+dependencies = ["fastapi>=0.115.12", "sqlalchemy>=2.0.40", "uvicorn>=0.34.0"]
+requires-python = "==3.12.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+distribution = false
+
+[dependency-groups]
+dev = [
+    "ruff>=0.11.3",
+]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["D100", "D105", "D101", "D106", "D104", "D107", "B008", "PLE1205", "UP037",]
+
+[tool.pdm.scripts]
+start = "uvicorn src.main.app:create_app --factory"
