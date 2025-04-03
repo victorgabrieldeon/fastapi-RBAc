@@ -24,4 +24,4 @@ select = ["ALL"]
 ignore = ["D100", "D105", "D101", "D106", "D104", "D107", "B008", "PLE1205", "UP037",]
 
 [tool.pdm.scripts]
-start = "uvicorn src.main.app:create_app --factory"
+start = "main.py"
