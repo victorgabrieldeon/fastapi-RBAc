@@ -1,5 +1,33 @@
+version: '3.8'
+
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastapi-rbac
     ports:
       - "8000:8000"
+    environment:
+      - APP_NAME=FastAPI RBAC
+      - DEBUG=true
+      - SECRET_KEY=your-secret-key-change-in-production
+      - DATABASE_URL=sqlite:///./data/rbac.db
+    volumes:
+      # Mount the data directory for persistent SQLite database
+      - ./data:/app/data
+      # Mount .env file if it exists
+      - ./.env:/app/.env:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/public').read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - rbac-network
+
+networks:
+  rbac-network:
+    driver: bridge
