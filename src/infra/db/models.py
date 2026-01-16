@@ -5,9 +5,23 @@ from sqlalchemy.orm import (
     Session,
     mapped_column,
     relationship,
+    scoped_session,
+    sessionmaker,
 )
 
-engine = create_engine("sqlite://")
+from src.main.config import get_settings
+
+settings = get_settings()
+
+engine = create_engine(
+    settings.database_url,
+    connect_args={"check_same_thread": False} if "sqlite" in settings.database_url else {},
+    pool_pre_ping=True,
+    echo=settings.debug,
+)
+
+# Create a scoped session factory for thread-safe database operations
+SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 
 
 class Base(DeclarativeBase):
@@ -40,7 +54,11 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(index=True)
+    name: Mapped[str] = mapped_column(index=True, unique=True)
+    email: Mapped[str | None] = mapped_column(index=True, unique=True, nullable=True)
+    hashed_password: Mapped[str] = mapped_column(nullable=False)
+    is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
+
     groups: Mapped[list["Group"]] = relationship(
         "Group",
         secondary=user_group_association,
@@ -96,4 +114,15 @@ class Group(Base):
 
 Base.metadata.create_all(engine)
 
-session = Session(engine)
+
+def get_db() -> Session:
+    """Get a database session.
+
+    Yields:
+        Database session.
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
